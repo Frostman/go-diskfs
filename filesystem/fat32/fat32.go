@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"sort"
 	"strings"
 	"time"
 
@@ -343,7 +342,6 @@ func Read(file util.File, size, start, blocksize int64) (*FileSystem, error) {
 		return nil, fmt.Errorf("only could read %d bytes from file", n)
 	}
 	bs, err := msDosBootSectorFromBytes(bsb)
-
 	if err != nil {
 		return nil, fmt.Errorf("error reading MS-DOS Boot Sector: %v", err)
 	}
@@ -808,7 +806,6 @@ func (fs *FileSystem) mkLabel(parent *Directory, name string) (*directoryEntry, 
 // if it does not exist, it may or may not make it
 func (fs *FileSystem) readDirWithMkdir(p string, doMake bool) (*Directory, []*directoryEntry, error) {
 	paths, err := splitPath(p)
-
 	if err != nil {
 		return nil, nil, err
 	}
@@ -923,7 +920,6 @@ func (fs *FileSystem) allocateSpace(size uint64, previous uint32) ([]uint32, err
 	// 1- calculate how many clusters needed
 	// 2- see how many clusters already are allocated
 	// 3- if needed, allocate new clusters and extend the chain in the FAT table
-	keys := make([]uint32, 0, 20)
 	allocated := make([]uint32, 0, 20)
 
 	// what is the total count of clusters needed?
@@ -955,13 +951,10 @@ func (fs *FileSystem) allocateSpace(size uint64, previous uint32) ([]uint32, err
 	// get a list of allocated clusters, so we can know which ones are unallocated and therefore allocatable
 	allClusters := fs.table.clusters
 	maxCluster := fs.table.maxCluster
-	for k := range allClusters {
-		keys = append(keys, k)
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
 	if extraClusterCount > 0 {
 		for i := uint32(2); i < maxCluster && len(allocated) < extraClusterCount; i++ {
+			// TODO that is slow, replace with a slice?
 			if _, ok := allClusters[i]; !ok {
 				// these become the same at this point
 				allocated = append(allocated, i)
