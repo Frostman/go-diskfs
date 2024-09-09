@@ -12,6 +12,15 @@ const (
 	eocMin = uint32(0x0ffffff8) // {0xf8, 0xff, 0xff, 0x0f})
 )
 
+func clustersFromMap(m map[uint32]uint32, maxCluster uint32) []uint32 {
+	clusters := make([]uint32, maxCluster+1)
+	for k, v := range clusters {
+		clusters[k] = v
+	}
+
+	return clusters
+}
+
 func getValidFat32Table() *table {
 	sectorsPerFat := 158               // 158 sectors per FAT given in DOS20BPB
 	sizeInBytes := sectorsPerFat * 512 // 512 bytes per sector,
@@ -23,7 +32,7 @@ func getValidFat32Table() *table {
 	return &table{
 		fatID:     268435448, // 0x0ffffff8
 		eocMarker: eoc,       // 0x0fffffff
-		clusters: map[uint32]uint32{
+		clusters: clustersFromMap(map[uint32]uint32{
 			2:   eocMin,
 			3:   60,
 			4:   eoc,
@@ -149,7 +158,7 @@ func getValidFat32Table() *table {
 			124: eoc,
 			125: eoc,
 			126: eoc,
-		},
+		}, uint32(numClusters)),
 		rootDirCluster: 2,
 		size:           uint32(sizeInBytes),
 		maxCluster:     uint32(numClusters),
