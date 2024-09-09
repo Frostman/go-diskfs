@@ -24,11 +24,12 @@ func getValidFat32FSFull() *FileSystem {
 
 func getValidFat32FSSmall() *FileSystem {
 	eoc := uint32(0xffffffff)
+	maxCluster := uint32(128)
 	fs := &FileSystem{
 		table: table{
 			rootDirCluster: 2,
 			size:           512,
-			maxCluster:     128,
+			maxCluster:     maxCluster,
 			eocMarker:      eoc,
 			/*
 				 map:
@@ -40,7 +41,7 @@ func getValidFat32FSSmall() *FileSystem {
 					 15
 					 16-broken
 			*/
-			clusters: map[uint32]uint32{
+			clusters: clustersFromMap(map[uint32]uint32{
 				2:  eoc,
 				3:  4,
 				4:  5,
@@ -53,7 +54,7 @@ func getValidFat32FSSmall() *FileSystem {
 				11: eoc,
 				15: eoc,
 				16: 0,
-			},
+			}, maxCluster),
 		},
 		bytesPerCluster: 512,
 		dataStart:       178176,
@@ -78,6 +79,7 @@ func getValidFat32FSSmall() *FileSystem {
 	}
 	return fs
 }
+
 func TestFat32GetClusterList(t *testing.T) {
 	fs := getValidFat32FSSmall()
 

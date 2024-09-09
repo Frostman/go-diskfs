@@ -222,17 +222,16 @@ func Create(f util.File, size, start, blocksize int64, volumeLabel string) (*Fil
 	fatSecondaryStart := uint64(fatPrimaryStart) + uint64(fatSize)
 	maxCluster := fatSize / 4
 	rootDirCluster := uint32(2)
+	clusters := make([]uint32, maxCluster+1)
+	clusters[rootDirCluster] = eocMarker
 	fat := table{
 		fatID:          fatID,
 		eocMarker:      eocMarker,
 		unusedMarker:   unusedMarker,
 		size:           fatSize,
 		rootDirCluster: rootDirCluster,
-		clusters: map[uint32]uint32{
-			// when we start, there is just one directory with a single cluster
-			rootDirCluster: eocMarker,
-		},
-		maxCluster: maxCluster,
+		clusters:       clusters,
+		maxCluster:     maxCluster,
 	}
 
 	// where does our data start?
@@ -690,7 +689,7 @@ func (fs *FileSystem) getClusterList(firstCluster uint32) ([]uint32, error) {
 	clusters := fs.table.clusters
 
 	// do we even have a valid cluster?
-	if _, ok := clusters[cluster]; !ok {
+	if clusters[cluster] == 0 {
 		return nil, fmt.Errorf("invalid start cluster: %d", cluster)
 	}
 
@@ -954,8 +953,7 @@ func (fs *FileSystem) allocateSpace(size uint64, previous uint32) ([]uint32, err
 
 	if extraClusterCount > 0 {
 		for i := uint32(2); i < maxCluster && len(allocated) < extraClusterCount; i++ {
-			// TODO that is slow, replace with a slice?
-			if _, ok := allClusters[i]; !ok {
+			if allClusters[i] == 0 {
 				// these become the same at this point
 				allocated = append(allocated, i)
 			}
