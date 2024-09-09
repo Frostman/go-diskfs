@@ -53,7 +53,7 @@ func getValidFat32FSSmall() *FileSystem {
 				9:  11,
 				11: eoc,
 				15: eoc,
-				16: 0,
+				16: 1, // TODO it was 0 here which is used as non-existing value, but nothing should point to 0
 			}, maxCluster),
 		},
 		bytesPerCluster: 512,
