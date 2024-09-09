@@ -54,6 +54,7 @@ func getValidFat32FSSmall() *FileSystem {
 				11: eoc,
 				15: eoc,
 				16: 1, // TODO it was 0 here which is used as non-existing value, but nothing should point to 0
+				17: 999,
 			}, maxCluster),
 		},
 		bytesPerCluster: 512,
@@ -190,9 +191,11 @@ func TestFat32AllocateSpace(t *testing.T) {
 		{500, 2, []uint32{2}, nil},
 		{600, 2, []uint32{2, 12}, nil},
 		{2000, 2, []uint32{2, 12, 13, 14}, nil},
-		{2000, 0, []uint32{12, 13, 14, 17}, nil},
+		{2000, 0, []uint32{12, 13, 14, 18}, nil},
 		{200000000000, 0, nil, fmt.Errorf("no space left on device")},
 		{200000000000, 2, nil, fmt.Errorf("no space left on device")},
+		{2000, 17, nil, fmt.Errorf("unable to get cluster list: invalid cluster chain at 999")},
+		{2000, 999, nil, fmt.Errorf("unable to get cluster list: invalid start cluster: 999")},
 	}
 	for _, tt := range tests {
 		// reset for each test

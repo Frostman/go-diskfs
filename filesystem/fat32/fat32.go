@@ -689,7 +689,7 @@ func (fs *FileSystem) getClusterList(firstCluster uint32) ([]uint32, error) {
 	clusters := fs.table.clusters
 
 	// do we even have a valid cluster?
-	if clusters[cluster] == 0 {
+	if cluster > fs.table.maxCluster || clusters[cluster] == 0 {
 		return nil, fmt.Errorf("invalid start cluster: %d", cluster)
 	}
 
@@ -705,6 +705,8 @@ func (fs *FileSystem) getClusterList(firstCluster uint32) ([]uint32, error) {
 			complete = true
 		case cluster < 2:
 			return nil, fmt.Errorf("invalid cluster chain at %d", cluster)
+		case newCluster > fs.table.maxCluster:
+			return nil, fmt.Errorf("invalid cluster chain at %d", newCluster)
 		}
 		cluster = newCluster
 	}
@@ -941,6 +943,8 @@ func (fs *FileSystem) allocateSpace(size uint64, previous uint32) ([]uint32, err
 		// make sure that previous is the last cluster of the previous chain
 		previous = clusters[len(clusters)-1]
 	}
+
+	// TODO check that previous is within boundaries
 
 	// what if we do not need to change anything?
 	if extraClusterCount == 0 {

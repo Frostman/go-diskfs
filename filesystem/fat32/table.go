@@ -51,6 +51,9 @@ func tableFromBytes(b []byte) *table {
 		bStart := i * 4
 		bEnd := bStart + 4
 		val := binary.LittleEndian.Uint32(b[bStart:bEnd])
+
+		// TODO val could be out of boundaries (e.g. if bytes were invalid)
+
 		// 0 indicates an empty cluster, so we can ignore
 		if val != 0 {
 			t.clusters[i] = val
