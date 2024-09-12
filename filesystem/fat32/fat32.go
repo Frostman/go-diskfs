@@ -828,6 +828,9 @@ func (fs *FileSystem) readDirWithMkdir(p string, doMake bool) (*Directory, []*di
 		// do we have an entry whose name is the same as this name?
 		found := false
 		for _, e := range entries {
+			if e.isVolumeLabel {
+				continue
+			}
 			if e.filenameLong != subp && e.filenameShort != subp && (!e.lowercaseShortname || (e.lowercaseShortname && !strings.EqualFold(e.filenameShort, subp))) {
 				continue
 			}
