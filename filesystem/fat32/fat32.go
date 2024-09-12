@@ -535,7 +535,7 @@ func (fs *FileSystem) OpenFile(p string, flag int) (filesystem.File, error) {
 	// get the directory entries
 	parentDir, entries, err := fs.readDirWithMkdir(dir, false)
 	if err != nil {
-		return nil, fmt.Errorf("could not read directory entries for %s", dir)
+		return nil, fmt.Errorf("could not read directory entries for %s: %w", dir, err)
 	}
 	// we now know that the directory exists, see if the file exists
 	var targetEntry *directoryEntry
@@ -822,7 +822,7 @@ func (fs *FileSystem) readDirWithMkdir(p string, doMake bool) (*Directory, []*di
 	}
 	entries, err = fs.readDirectory(currentDir)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read directory %s", "/")
+		return nil, nil, fmt.Errorf("failed to read directory %s: %w", "/", err)
 	}
 	for i, subp := range paths {
 		// do we have an entry whose name is the same as this name?
@@ -849,7 +849,7 @@ func (fs *FileSystem) readDirWithMkdir(p string, doMake bool) (*Directory, []*di
 				var subdirEntry *directoryEntry
 				subdirEntry, err = fs.mkSubdir(currentDir, subp)
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed to create subdirectory %s", "/"+strings.Join(paths[0:i+1], "/"))
+					return nil, nil, fmt.Errorf("failed to create subdirectory %s: %w", "/"+strings.Join(paths[0:i+1], "/"), err)
 				}
 				currentDir.modifyTime = subdirEntry.createTime
 				// make a basic entry for the new subdir
@@ -882,12 +882,12 @@ func (fs *FileSystem) readDirWithMkdir(p string, doMake bool) (*Directory, []*di
 				// write the new directory entries to disk
 				err = fs.writeDirectoryEntries(dir)
 				if err != nil {
-					return nil, nil, fmt.Errorf("error writing new directory entries to disk: %v", err)
+					return nil, nil, fmt.Errorf("error writing new directory entries to disk: %w", err)
 				}
 				// write the parent directory entries to disk
 				err = fs.writeDirectoryEntries(currentDir)
 				if err != nil {
-					return nil, nil, fmt.Errorf("error writing directory entries to disk: %v", err)
+					return nil, nil, fmt.Errorf("error writing directory entries to disk: %w", err)
 				}
 				// save where we are to search next
 				currentDir = &Directory{
@@ -900,7 +900,7 @@ func (fs *FileSystem) readDirWithMkdir(p string, doMake bool) (*Directory, []*di
 		// get all of the entries in this directory
 		entries, err = fs.readDirectory(currentDir)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to read directory %s", "/"+strings.Join(paths[0:i+1], "/"))
+			return nil, nil, fmt.Errorf("failed to read directory %s: %w", "/"+strings.Join(paths[0:i+1], "/"), err)
 		}
 	}
 	// once we have made it here, looping is done; we have found the final entry
